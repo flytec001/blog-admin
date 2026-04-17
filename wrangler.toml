@@ -1,0 +1,15 @@
+name = "blog-admin"
+compatibility_date = "2026-04-17"
+pages_build_output_dir = "dist"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "blog-assets"
+
+[vars]
+ALLOWED_EMAILS = "you@example.com"
+GITHUB_OWNER = "your-org"
+GITHUB_REPO = "hugo-blog"
+GITHUB_BRANCH = "main"
+POSTS_DIR = "content/posts"
+R2_PUBLIC_BASE_URL = "https://cdn.example.com"

@@ -1,0 +1,8 @@
+GITHUB_TOKEN=
+ALLOWED_EMAILS=you@example.com
+DEV_ACCESS_EMAIL=you@example.com
+GITHUB_OWNER=your-org
+GITHUB_REPO=hugo-blog
+GITHUB_BRANCH=main
+POSTS_DIR=content/posts
+R2_PUBLIC_BASE_URL=https://cdn.example.com
