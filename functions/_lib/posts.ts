@@ -11,6 +11,8 @@ export interface PostListItem {
   lastmod: string;
   draft: boolean;
   description: string;
+  tags: string[];
+  categories: string[];
 }
 
 export interface PostDetail extends PostMeta {
@@ -79,6 +81,8 @@ export function toPostListItem(markdown: string, path: string): PostListItem {
     lastmod: parsed.meta.lastmod,
     draft: parsed.meta.draft,
     description: parsed.meta.description,
+    tags: parsed.meta.tags ?? [],
+    categories: parsed.meta.categories ?? [],
   };
 }
 

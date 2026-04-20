@@ -35,3 +35,19 @@ export async function deletePost(slug: string, sha: string): Promise<{ ok: true;
     body: JSON.stringify({ sha }),
   });
 }
+
+export async function setPostDraft(slug: string, draft: boolean): Promise<PostDetail> {
+  const detail = await fetchPost(slug);
+  return updatePost(slug, {
+    title: detail.title,
+    slug: detail.slug,
+    date: detail.date,
+    draft,
+    description: detail.description,
+    tags: detail.tags,
+    categories: detail.categories,
+    cover: detail.cover,
+    body: detail.body,
+    sha: detail.sha,
+  });
+}

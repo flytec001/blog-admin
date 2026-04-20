@@ -1,6 +1,6 @@
 export interface Env {
-  ALLOWED_EMAILS: string;
-  DEV_ACCESS_EMAIL?: string;
+  ADMIN_PASSWORD: string;
+  AUTH_SECRET: string;
   GITHUB_OWNER: string;
   GITHUB_REPO: string;
   GITHUB_BRANCH: string;
@@ -8,10 +8,15 @@ export interface Env {
   R2_PUBLIC_BASE_URL: string;
   GITHUB_TOKEN: string;
   MEDIA_BUCKET: R2Bucket;
+  CF_ACCOUNT_ID?: string;
+  CF_ANALYTICS_TOKEN?: string;
+  CF_ANALYTICS_SITE_TAG?: string;
+  BLOG_POST_PATH_PREFIX?: string;
 }
 
 const REQUIRED_KEYS = [
-  "ALLOWED_EMAILS",
+  "ADMIN_PASSWORD",
+  "AUTH_SECRET",
   "GITHUB_OWNER",
   "GITHUB_REPO",
   "GITHUB_BRANCH",
@@ -21,13 +26,6 @@ const REQUIRED_KEYS = [
 ] as const;
 
 type RequiredEnvKey = (typeof REQUIRED_KEYS)[number];
-
-export function getAllowedEmails(value: string): string[] {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
 
 export function getEnv(rawEnv: Partial<Env>): Env {
   for (const key of REQUIRED_KEYS) {

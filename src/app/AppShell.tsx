@@ -1,57 +1,98 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { requestJson } from "../lib/http";
 
 export function AppShell() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadSession() {
       try {
-        const session = await requestJson<{ email: string | null }>("/api/session");
-        if (!cancelled) {
-          setEmail(session.email ?? "");
-          setStatus("ready");
-        }
+        const session = await requestJson<{ authenticated: boolean }>("/api/session");
+        if (!cancelled) setAuthenticated(session.authenticated);
       } catch {
-        if (!cancelled) {
-          setStatus("error");
-        }
+        if (!cancelled) setAuthenticated(false);
       }
     }
 
     void loadSession();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  async function onLogout() {
+    try {
+      await requestJson("/api/auth/logout", { method: "POST" });
+    } finally {
+      navigate("/login", { replace: true });
+    }
+  }
+
+  if (authenticated === null) {
+    return <div className="app-loading">读取中...</div>;
+  }
+
+  if (authenticated === false) {
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <NavigateReplace to={`/login?next=${next}`} />;
+  }
+
   return (
     <div className="app-shell">
-      <aside className="app-sidebar">
+      <header className="mobile-topbar">
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label="打开菜单"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          ☰
+        </button>
+        <span className="brand">Blog Admin</span>
+      </header>
+
+      {menuOpen ? (
+        <div
+          className="sidebar-backdrop"
+          role="presentation"
+          onClick={() => setMenuOpen(false)}
+        />
+      ) : null}
+
+      <aside className={menuOpen ? "app-sidebar open" : "app-sidebar"}>
         <div className="app-brand">Blog Admin</div>
         <nav className="app-nav">
           <NavLink to="/posts">文章</NavLink>
           <NavLink to="/posts/new">新建</NavLink>
+          <NavLink to="/media">图床</NavLink>
         </nav>
-        <div className="session-card">
-          <span className="session-label">当前账号</span>
-          <strong className="session-value">
-            {status === "loading"
-              ? "读取中..."
-              : status === "error"
-                ? "未获取到身份"
-                : email || "未登录"}
-          </strong>
-        </div>
+        <button type="button" className="app-logout" onClick={onLogout}>
+          退出登录
+        </button>
       </aside>
+
       <main className="app-main">
         <Outlet />
       </main>
     </div>
   );
+}
+
+function NavigateReplace({ to }: { to: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate(to, { replace: true });
+  }, [navigate, to]);
+  return null;
 }

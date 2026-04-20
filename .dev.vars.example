@@ -1,6 +1,6 @@
 GITHUB_TOKEN=
-ALLOWED_EMAILS=you@example.com
-DEV_ACCESS_EMAIL=you@example.com
+ADMIN_PASSWORD=change-me
+AUTH_SECRET=replace-with-32-char-random-string
 GITHUB_OWNER=your-org
 GITHUB_REPO=hugo-blog
 GITHUB_BRANCH=main

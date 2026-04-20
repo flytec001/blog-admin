@@ -5,6 +5,8 @@ export interface PostListItem {
   lastmod: string;
   draft: boolean;
   description: string;
+  tags: string[];
+  categories: string[];
 }
 
 export interface PostInput {

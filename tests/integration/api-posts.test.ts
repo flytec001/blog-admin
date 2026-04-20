@@ -10,7 +10,8 @@ import {
 } from "../../functions/api/posts/[slug]";
 
 const env = {
-  ALLOWED_EMAILS: "allowed@example.com",
+  ADMIN_PASSWORD: "pw",
+  AUTH_SECRET: "secret",
   GITHUB_OWNER: "acme",
   GITHUB_REPO: "blog",
   GITHUB_BRANCH: "main",
@@ -103,6 +104,8 @@ Hello world
         lastmod: "2026-04-17",
         draft: false,
         description: "",
+        tags: [],
+        categories: ["notes"],
       },
     ]);
   });

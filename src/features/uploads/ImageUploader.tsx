@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ApiError } from "../../lib/types";
+import { uploadImage } from "../../lib/upload";
 
 interface ImageUploaderProps {
   label: string;
@@ -13,32 +13,16 @@ export function ImageUploader({ label, onUploaded }: ImageUploaderProps) {
 
   async function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     setStatus("uploading");
     setError("");
-
-    const formData = new FormData();
-    formData.set("file", file);
-
     try {
-      const response = await fetch("/api/uploads", {
-        method: "POST",
-        body: formData,
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new ApiError(response.status, payload.error ?? "上传失败");
-      }
-
-      onUploaded(payload.url);
+      const result = await uploadImage(file);
+      onUploaded(result.url);
       event.target.value = "";
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "上传失败");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "上传失败");
     } finally {
       setStatus("idle");
     }

@@ -1,85 +1,74 @@
 import { describe, expect, it } from "vitest";
 import { onRequest as middleware } from "../../functions/_middleware";
 import { onRequestGet as sessionHandler } from "../../functions/api/session";
+import { onRequestPost as loginHandler } from "../../functions/api/auth/login";
+import { signSession } from "../../functions/_lib/auth";
 
-function createContext(
-  headers: HeadersInit = {},
-  options: { url?: string; env?: Record<string, string> } = {},
-) {
-  const request = new Request(options.url ?? "https://admin.example.com/api/session", {
-    headers,
-  });
+const BASE_ENV = {
+  ADMIN_PASSWORD: "s3cret",
+  AUTH_SECRET: "hmac-secret",
+  GITHUB_OWNER: "acme",
+  GITHUB_REPO: "blog",
+  GITHUB_BRANCH: "main",
+  POSTS_DIR: "content/posts",
+  R2_PUBLIC_BASE_URL: "https://cdn.example.com",
+  GITHUB_TOKEN: "t",
+};
 
+function middlewareContext(headers: HeadersInit = {}, url = "https://admin.example.com/api/session") {
+  const request = new Request(url, { headers });
   return {
     request,
-    env: {
-      ALLOWED_EMAILS: "allowed@example.com",
-      ...(options.env ?? {}),
-    },
-    next: () =>
-      sessionHandler({
-        request,
-        env: {
-          ALLOWED_EMAILS: "allowed@example.com",
-          ...(options.env ?? {}),
-        },
-      } as never),
+    env: BASE_ENV,
+    next: () => sessionHandler({ request, env: BASE_ENV } as never),
   } as never;
 }
 
-describe("GET /api/session", () => {
-  it("returns 401 without access email header", async () => {
-    const response = await middleware(createContext());
-    const payload = await response.json();
-
+describe("auth middleware + session", () => {
+  it("blocks /api/session without cookie", async () => {
+    const response = await middleware(middlewareContext());
     expect(response.status).toBe(401);
-    expect(payload).toEqual({ error: "Unauthorized" });
+    expect(await response.json()).toEqual({ error: "Unauthorized" });
   });
 
-  it("returns session when access email is allowed", async () => {
+  it("allows /api/session with a valid signed cookie", async () => {
+    const token = await signSession(BASE_ENV.AUTH_SECRET);
     const response = await middleware(
-      createContext({
-        "Cf-Access-Authenticated-User-Email": "allowed@example.com",
-      }),
+      middlewareContext({ Cookie: `admin_session=${token}` }),
     );
-    const payload = await response.json();
-
     expect(response.status).toBe(200);
-    expect(payload).toEqual({ email: "allowed@example.com" });
+    expect(await response.json()).toEqual({ authenticated: true });
   });
 
-  it("returns session for local dev when dev access email is configured", async () => {
+  it("rejects cookies signed with a different secret", async () => {
+    const token = await signSession("other-secret");
     const response = await middleware(
-      createContext(
-        {},
-        {
-          url: "http://127.0.0.1:8788/api/session",
-          env: {
-            DEV_ACCESS_EMAIL: "allowed@example.com",
-          },
-        },
-      ),
+      middlewareContext({ Cookie: `admin_session=${token}` }),
     );
-    const payload = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(payload).toEqual({ email: "allowed@example.com" });
-  });
-
-  it("still returns 401 on non-local host even if dev access email is configured", async () => {
-    const response = await middleware(
-      createContext(
-        {},
-        {
-          env: {
-            DEV_ACCESS_EMAIL: "allowed@example.com",
-          },
-        },
-      ),
-    );
-    const payload = await response.json();
-
     expect(response.status).toBe(401);
-    expect(payload).toEqual({ error: "Unauthorized" });
+  });
+});
+
+describe("POST /api/auth/login", () => {
+  it("issues a session cookie on correct password", async () => {
+    const request = new Request("https://admin.example.com/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: "s3cret" }),
+    });
+    const response = await loginHandler({ request, env: BASE_ENV } as never);
+    expect(response.status).toBe(200);
+    const cookie = response.headers.get("Set-Cookie") ?? "";
+    expect(cookie).toMatch(/^admin_session=.+; Path=\/; HttpOnly; Secure; SameSite=Strict/);
+  });
+
+  it("returns 401 on wrong password", async () => {
+    const request = new Request("https://admin.example.com/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: "wrong" }),
+    });
+    const response = await loginHandler({ request, env: BASE_ENV } as never);
+    expect(response.status).toBe(401);
   });
 });

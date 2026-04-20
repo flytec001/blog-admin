@@ -14,11 +14,19 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@tiptap/core": "^3.22.4",
+    "@tiptap/extension-image": "latest",
+    "@tiptap/extension-link": "latest",
+    "@tiptap/extension-placeholder": "latest",
+    "@tiptap/react": "latest",
+    "@tiptap/starter-kit": "latest",
     "dompurify": "latest",
     "marked": "latest",
+    "pinyin-pro": "^3.28.1",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",
+    "tiptap-markdown": "latest",
     "yaml": "latest",
     "zod": "latest"
   },

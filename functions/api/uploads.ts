@@ -57,6 +57,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     httpMetadata: {
       contentType: upload.type,
     },
+    customMetadata: {
+      originalName: upload.name,
+      uploadedAt: now.toISOString(),
+    },
   });
 
   return json(
