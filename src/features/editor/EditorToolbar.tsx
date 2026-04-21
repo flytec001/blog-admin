@@ -4,10 +4,18 @@ import type { Editor } from "@tiptap/react";
 interface EditorToolbarProps {
   editor: Editor;
   onPickImage: (file: File) => void;
+  onInsertGallery: () => void;
+  onInsertCompare: () => void;
   uploading: boolean;
 }
 
-export function EditorToolbar({ editor, onPickImage, uploading }: EditorToolbarProps) {
+export function EditorToolbar({
+  editor,
+  onPickImage,
+  onInsertGallery,
+  onInsertCompare,
+  uploading,
+}: EditorToolbarProps) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const cameraRef = useRef<HTMLInputElement | null>(null);
 
@@ -88,6 +96,8 @@ export function EditorToolbar({ editor, onPickImage, uploading }: EditorToolbarP
       {btn(editor.isActive("link"), "🔗", "链接", setLink)}
       {btn(false, "🖼", uploading ? "上传中..." : "插入图片", pickFromFiles, uploading)}
       {btn(false, "📷", uploading ? "上传中..." : "拍照插入", pickFromCamera, uploading)}
+      {btn(false, "▦", "插入画廊", onInsertGallery)}
+      {btn(false, "◐", "插入前后对比", onInsertCompare)}
       <span className="tb-sep" />
       {btn(false, "↶", "撤销", () => editor.chain().focus().undo().run(), !editor.can().undo())}
       {btn(false, "↷", "重做", () => editor.chain().focus().redo().run(), !editor.can().redo())}

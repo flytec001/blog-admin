@@ -7,7 +7,7 @@ import {
   markdownImage,
   type MediaItem,
 } from "../api";
-import { uploadImage } from "../../../lib/upload";
+import { uploadImage, formatSize } from "../../../lib/upload";
 import { OrphanScanner } from "../components/OrphanScanner";
 
 export function MediaLibraryPage() {
@@ -91,12 +91,26 @@ export function MediaLibraryPage() {
     if (!files || files.length === 0) return;
     setUploadStatus("uploading");
     setError("");
+    let totalOriginal = 0;
+    let totalFinal = 0;
+    let compressedCount = 0;
     try {
       for (const file of Array.from(files)) {
         if (!file.type.startsWith("image/")) continue;
-        await uploadImage(file);
+        const result = await uploadImage(file);
+        totalOriginal += result.originalSize;
+        totalFinal += result.finalSize;
+        if (result.compressed) compressedCount += 1;
       }
-      showToast("上传完成");
+      const saved = totalOriginal - totalFinal;
+      if (compressedCount > 0 && saved > 0) {
+        const ratio = Math.round((saved / totalOriginal) * 100);
+        showToast(
+          `已压缩 ${compressedCount} 张，节省 ${formatSize(saved)}（${ratio}%）`,
+        );
+      } else {
+        showToast("上传完成");
+      }
       await loadInitial();
     } catch (err) {
       setError(err instanceof Error ? err.message : "上传失败");
