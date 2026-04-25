@@ -71,7 +71,10 @@ export function AppShell() {
       ) : null}
 
       <aside className={menuOpen ? "app-sidebar open" : "app-sidebar"}>
-        <div className="app-brand">Blog Admin</div>
+        <div className="app-sidebar-header">
+          <div className="app-brand">Blog Admin</div>
+          <div className="app-brand-hint">编辑工作台</div>
+        </div>
         <nav className="app-nav">
           <NavLink to="/posts">文章</NavLink>
           <NavLink to="/posts/new">新建</NavLink>

@@ -49,14 +49,16 @@ export function PostListTable({
           const isToggling = togglingSlug === item.slug;
           return (
             <tr key={item.slug}>
-              <td>
+              <td className="title-cell">
                 <Link className="post-title-cell" to={`/posts/${item.slug}`}>
                   <strong>{item.title}</strong>
                   <span>{item.description || "无摘要"}</span>
                 </Link>
               </td>
-              <td data-label="Slug">{item.slug}</td>
-              <td data-label="日期">{item.date}</td>
+              <td data-label="Slug" className="post-slug-cell">
+                <code>{item.slug}</code>
+              </td>
+              <td data-label="日期" className="post-date-cell">{item.date}</td>
               <td data-label="状态">
                 <button
                   type="button"
@@ -69,7 +71,7 @@ export function PostListTable({
                 </button>
               </td>
               {analyticsEnabled ? (
-                <td data-label="30天浏览">
+                <td data-label="30天浏览" className="analytics-column">
                   {stat ? (
                     <div className="analytics-cell">
                       <strong>{formatNumber(stat.pageviews)}</strong>
@@ -80,7 +82,7 @@ export function PostListTable({
                   )}
                 </td>
               ) : null}
-              <td className="actions-cell">
+              <td className="actions-cell compact-actions">
                 <div className="row-actions">
                   <Link className="secondary-button" to={`/posts/${item.slug}`}>
                     编辑

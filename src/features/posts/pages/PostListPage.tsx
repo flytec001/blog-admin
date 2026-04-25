@@ -101,13 +101,20 @@ export function PostListPage() {
       return matchesQuery(item, deferredQuery);
     });
   }, [items, filter, deferredQuery]);
+  const publishedCount = items.filter((item) => !item.draft).length;
+  const draftCount = items.length - publishedCount;
 
   return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
-          <h1>文章列表</h1>
-          <p>这里展示 Hugo 仓库里已保存的文章文件。</p>
+    <section className="panel panel-dense">
+      <div className="panel-header panel-header-compact">
+        <div className="page-heading">
+          <h1>文章</h1>
+          <p>筛选、扫描、快速进入编辑。</p>
+        </div>
+        <div className="page-metrics" aria-label="文章统计">
+          <span className="metric-pill">总计 {items.length}</span>
+          <span className="metric-pill">已发布 {publishedCount}</span>
+          <span className="metric-pill">草稿 {draftCount}</span>
         </div>
         <Link className="primary-button" to="/posts/new">
           新建文章

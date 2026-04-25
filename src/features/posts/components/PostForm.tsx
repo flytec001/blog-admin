@@ -42,7 +42,12 @@ export function PostForm({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const query = window.matchMedia("(min-width: 960px)");
-    const listener = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    const listener = (event: MediaQueryListEvent) => {
+      setIsDesktop(event.matches);
+      if (!event.matches) {
+        setDesktopPreviewOpen(false);
+      }
+    };
     query.addEventListener("change", listener);
     return () => query.removeEventListener("change", listener);
   }, []);
@@ -82,8 +87,8 @@ export function PostForm({
   }, [isSubmitting, onSubmit]);
 
   const metaFields = (
-    <div className="form-grid">
-      <label className="field">
+    <div className="form-grid compact-form-grid">
+      <label className="field field-full">
         <span>标题</span>
         <input
           aria-label="标题"
@@ -108,16 +113,6 @@ export function PostForm({
           aria-label="日期"
           value={value.date ?? ""}
           onChange={(event) => setField("date", event.target.value)}
-        />
-      </label>
-
-      <label className="field field-checkbox">
-        <span>草稿</span>
-        <input
-          aria-label="草稿"
-          type="checkbox"
-          checked={value.draft}
-          onChange={(event) => setField("draft", event.target.checked)}
         />
       </label>
 
@@ -170,6 +165,29 @@ export function PostForm({
     </div>
   );
 
+  const desktopMetaPane = (
+    <aside className="editor-sidecar">
+      <section className="editor-meta-card">
+        <div className="editor-meta-header">
+          <div>
+            <h2>文章信息</h2>
+            <p>发布设置、摘要、分类与封面。</p>
+          </div>
+          <button
+            type="button"
+            className={`status-badge ${value.draft ? "draft" : "published"} clickable`}
+            onClick={() => setField("draft", !value.draft)}
+            title={value.draft ? "当前草稿，点击切换为已发布" : "当前已发布，点击切换为草稿"}
+            aria-label={value.draft ? "切换为已发布" : "切换为草稿"}
+          >
+            {value.draft ? "草稿" : "已发布"}
+          </button>
+        </div>
+        {metaFields}
+      </section>
+    </aside>
+  );
+
   const editorPane = (
     <div className="editor-pane">
       <RichEditor
@@ -190,54 +208,63 @@ export function PostForm({
   );
 
   const desktopWorkspace = (
-    <div className="editor-desktop">
-      <div className="desktop-view-switch" role="tablist" aria-label="桌面编辑视图">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={!desktopPreviewOpen}
-          className={!desktopPreviewOpen ? "active" : ""}
-          onClick={() => setDesktopPreviewOpen(false)}
-        >
-          正文
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-preview-toggle="desktop"
-          aria-selected={desktopPreviewOpen}
-          aria-pressed={desktopPreviewOpen}
-          className={desktopPreviewOpen ? "active" : ""}
-          onClick={() => setDesktopPreviewOpen((open) => !open)}
-        >
-          {desktopPreviewOpen ? "收起预览" : "展开预览"}
-        </button>
-      </div>
+    <div className="editor-workspace">
+      <section className="editor-main">
+        <div className="editor-main-header">
+          <div className="editor-main-copy">
+            <h2>正文内容</h2>
+            <p>支持 Markdown、粘贴图片、拖放上传和快捷键保存。</p>
+          </div>
+          <div className="desktop-view-switch" role="tablist" aria-label="桌面编辑视图">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!desktopPreviewOpen}
+              className={!desktopPreviewOpen ? "active" : ""}
+              onClick={() => setDesktopPreviewOpen(false)}
+            >
+              正文
+            </button>
+            <button
+              type="button"
+              role="tab"
+              data-preview-toggle="desktop"
+              aria-selected={desktopPreviewOpen}
+              aria-pressed={desktopPreviewOpen}
+              className={desktopPreviewOpen ? "active" : ""}
+              onClick={() => setDesktopPreviewOpen((open) => !open)}
+            >
+              {desktopPreviewOpen ? "收起预览" : "展开预览"}
+            </button>
+          </div>
+        </div>
 
-      <div className="editor-desktop-stack">
-        {editorPane}
-        {desktopPreviewOpen ? previewPane : null}
-      </div>
+        <div className="editor-desktop-stack">
+          {editorPane}
+          {desktopPreviewOpen ? (
+            <section className="preview-drawer">
+              <div className="preview-drawer-header">
+                <strong>即时预览</strong>
+                <span>按 Hugo 实际渲染结果快速检查结构。</span>
+              </div>
+              {previewPane}
+            </section>
+          ) : null}
+        </div>
+      </section>
+
+      {desktopMetaPane}
     </div>
   );
 
   return (
-    <form className="editor-form panel" onSubmit={handleSubmit}>
-      <div className="panel-header">
-        <div>
+    <form className="editor-form panel panel-editor" onSubmit={handleSubmit}>
+      <div className="editor-topbar">
+        <div className="editor-topbar-copy">
           <h1>{mode === "create" ? "新建文章" : "编辑文章"}</h1>
-          <p>内容将写回 Hugo 仓库，图片上传到 R2。</p>
+          <p>把空间留给写作，元信息与预览按需查看。</p>
         </div>
-        <div className="row-actions">
-          <button
-            type="button"
-            className={`status-badge ${value.draft ? "draft" : "published"} clickable`}
-            onClick={() => setField("draft", !value.draft)}
-            title={value.draft ? "当前草稿，点击切换为已发布" : "当前已发布，点击切换为草稿"}
-            aria-label={value.draft ? "切换为已发布" : "切换为草稿"}
-          >
-            {value.draft ? "草稿" : "已发布"}
-          </button>
+        <div className="editor-topbar-actions">
           {onDelete ? (
             <button className="danger-button" type="button" onClick={onDelete}>
               删除
@@ -253,19 +280,19 @@ export function PostForm({
       {success ? <div className="alert success">{success}</div> : null}
       {draftStatus ? <div className="alert info">{draftStatus}</div> : null}
 
-      <details
-        className="meta-section"
-        open={isDesktop || metaOpen}
-        onToggle={(event) => setMetaOpen((event.target as HTMLDetailsElement).open)}
-      >
-        <summary>文章信息</summary>
-        {metaFields}
-      </details>
-
       {isDesktop ? (
         desktopWorkspace
       ) : (
         <div className="editor-mobile">
+          <details
+            className="meta-section"
+            open={metaOpen}
+            onToggle={(event) => setMetaOpen((event.target as HTMLDetailsElement).open)}
+          >
+            <summary>文章信息</summary>
+            {metaFields}
+          </details>
+
           <div className="mobile-tabs" role="tablist">
             <button
               type="button"

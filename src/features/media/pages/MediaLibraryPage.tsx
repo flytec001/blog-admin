@@ -120,11 +120,18 @@ export function MediaLibraryPage() {
   }
 
   return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
+    <section className="panel panel-dense">
+      <div className="panel-header panel-header-compact">
+        <div className="page-heading">
           <h1>图床</h1>
-          <p>管理 R2 中的图片。上传、预览、复制链接、删除。</p>
+          <p>上传、复制、预览、删除。</p>
+        </div>
+        <div className="page-metrics" aria-label="图床统计">
+          <span className="metric-pill">当前 {items.length} 张</span>
+          <span className="metric-pill">{hasMore ? "可继续加载" : "已到底"}</span>
+          <span className="metric-pill">
+            {uploadStatus === "uploading" ? "上传中" : "待命"}
+          </span>
         </div>
         <div className="row-actions">
           <button
