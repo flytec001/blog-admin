@@ -34,6 +34,7 @@ export function PostForm({
     typeof window !== "undefined" ? window.matchMedia("(min-width: 960px)").matches : true,
   );
   const [mobileView, setMobileView] = useState<MobileView>("edit");
+  const [desktopPreviewOpen, setDesktopPreviewOpen] = useState(false);
   const [metaOpen, setMetaOpen] = useState(false);
   const deferredBody = useDeferredValue(value.body ?? "");
   const slugTouchedRef = useRef(mode === "edit" && Boolean(value.slug));
@@ -188,6 +189,38 @@ export function PostForm({
     </div>
   );
 
+  const desktopWorkspace = (
+    <div className="editor-desktop">
+      <div className="desktop-view-switch" role="tablist" aria-label="桌面编辑视图">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={!desktopPreviewOpen}
+          className={!desktopPreviewOpen ? "active" : ""}
+          onClick={() => setDesktopPreviewOpen(false)}
+        >
+          正文
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-preview-toggle="desktop"
+          aria-selected={desktopPreviewOpen}
+          aria-pressed={desktopPreviewOpen}
+          className={desktopPreviewOpen ? "active" : ""}
+          onClick={() => setDesktopPreviewOpen((open) => !open)}
+        >
+          {desktopPreviewOpen ? "收起预览" : "展开预览"}
+        </button>
+      </div>
+
+      <div className="editor-desktop-stack">
+        {editorPane}
+        {desktopPreviewOpen ? previewPane : null}
+      </div>
+    </div>
+  );
+
   return (
     <form className="editor-form panel" onSubmit={handleSubmit}>
       <div className="panel-header">
@@ -230,10 +263,7 @@ export function PostForm({
       </details>
 
       {isDesktop ? (
-        <div className="editor-split">
-          {editorPane}
-          {previewPane}
-        </div>
+        desktopWorkspace
       ) : (
         <div className="editor-mobile">
           <div className="mobile-tabs" role="tablist">
